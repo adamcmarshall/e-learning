@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +8,9 @@ const Login = () => {
     password: "",
   });
 
-  const history = useHistory();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const { email, password } = formData;
 
@@ -19,12 +21,14 @@ const Login = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/api/auth/login", formData);
+      const res = await axios.post("/api/auth/login", formData); // Ensure this matches your backend route
       console.log(res.data); // Handle response (e.g., save token, redirect)
-      localStorage.setItem("token", res.data.token);
-      history.push("/dashboard");
+      setSuccess(true);
+      setError("");
+      navigate("/dashboard");
     } catch (err) {
-      console.error(err.response.data); // Handle error
+      setError(err.response.data.message || "Login failed");
+      setSuccess(false);
     }
   };
 
@@ -49,6 +53,7 @@ const Login = () => {
           required
         />
         <input type="submit" value="Login" />
+        {error && <div style={{ color: "red" }}>{error}</div>}
       </form>
     </div>
   );

@@ -1,6 +1,18 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Alert,
+  Snackbar,
+} from "@mui/material";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +22,11 @@ const Register = () => {
     role: "student", // default role
   });
 
-  const history = useHistory();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+
+  const navigate = useNavigate();
 
   const { name, email, password, role } = formData;
 
@@ -22,49 +38,105 @@ const Register = () => {
     e.preventDefault();
     try {
       const res = await axios.post("/api/auth/register", formData);
-      console.log(res.data); // Handle response (e.g., save token, redirect)
-      history.push("/login");
+      setSuccess(true);
+      setError("");
+      setOpenSnackbar(true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
-      console.error(err.response.data); // Handle error
+      setError(err.response.data.message || "Registration failed");
+      setSuccess(false);
+      setOpenSnackbar(true);
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
-    <div>
-      <h2>Register</h2>
+    <Container maxWidth="sm" style={{ marginTop: "50px" }}>
+      <Typography variant="h4" gutterBottom>
+        Register
+      </Typography>
       <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          placeholder="Name"
+        <TextField
+          fullWidth
+          label="Name"
           name="name"
           value={name}
           onChange={onChange}
+          margin="normal"
+          variant="outlined"
           required
         />
-        <input
-          type="email"
-          placeholder="Email"
+        <TextField
+          fullWidth
+          label="Email"
           name="email"
+          type="email"
           value={email}
           onChange={onChange}
+          margin="normal"
+          variant="outlined"
           required
         />
-        <input
-          type="password"
-          placeholder="Password"
+        <TextField
+          fullWidth
+          label="Password"
           name="password"
+          type="password"
           value={password}
           onChange={onChange}
+          margin="normal"
+          variant="outlined"
           required
         />
-        <select name="role" value={role} onChange={onChange}>
-          <option value="student">Student</option>
-          <option value="admin">Admin</option>
-          <option value="parent">Parent</option>
-        </select>
-        <input type="submit" value="Register" />
+        <FormControl fullWidth margin="normal" variant="outlined">
+          <InputLabel>Role</InputLabel>
+          <Select name="role" value={role} onChange={onChange} label="Role">
+            <MenuItem value="student">Student</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="parent">Parent</MenuItem>
+          </Select>
+        </FormControl>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          style={{ marginTop: "20px" }}
+        >
+          Register
+        </Button>
       </form>
-    </div>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        {success ? (
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="success"
+            variant="filled"
+          >
+            Registration successful! Redirecting to login...
+          </Alert>
+        ) : (
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="error"
+            variant="filled"
+          >
+            {error}
+          </Alert>
+        )}
+      </Snackbar>
+    </Container>
   );
 };
 
